@@ -53,6 +53,7 @@ namespace HcalCaloFlagLabels {
     ADCSaturationBit = 19,
     Fraction2TS = 20,   // should deprecate this at some point
     PresampleADC = 20,  // uses 7 bits to store ADC from presample
+    HBHERun3StuckADC = 21,  // ADC values in all 8 TS are the same
     // This bit is not yet in use (as of March 2012), but can be used to mark sim hits to which noise has been intentionally added
     AddedSimHcalNoise = 28,
     // The following bits are all user-defined; reverse-order them so that UserDefinedBit0 will be the last removed
