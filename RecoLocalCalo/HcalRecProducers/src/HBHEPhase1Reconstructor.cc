@@ -14,7 +14,6 @@
 // Original Author:  Igor Volobouev
 //         Created:  Tue, 21 Jun 2016 00:56:40 GMT
 //
-//
 
 // system include files
 #include <cmath>
@@ -276,6 +275,22 @@ namespace {
     setBit(&packed, 30, true);
     return packed;
   }
+
+  // Check if all ADC values in the given time sample range are the same
+  bool allADCsAreEqual(const QIE11DataFrame& frame, const int nTSToCopy, const int tsShift) {
+    if (nTSToCopy < 2)
+      return true;  // Trivially true for 0 or 1 samples
+    
+    const uint8_t firstADC = frame[tsShift].adc();
+    for (int ts = 1; ts < nTSToCopy; ++ts) {
+      if (frame[ts + tsShift].adc() != firstADC)
+        return false;
+    }
+    return true;
+  }
+
+  // Placeholder for QIE8
+  bool allADCsAreEqual(const HBHEDataFrame&, const int, const int) { return false; }
 }  // namespace
 
 //
@@ -649,6 +664,12 @@ void HBHEPhase1Reconstructor::setAsicSpecificBits(const QIE11DataFrame& frame,
 
   if (setNegativeFlagsQIE11_)
     runHBHENegativeEFilter(info, rh);
+
+  // Check for stuck ADC values (all 8 ADCs are the same)
+  const int nTSToCopy = info.nSamples();
+  const int tsShift = soi - info.soi();
+  if (allADCsAreEqual(frame, nTSToCopy, tsShift))
+    rh->setFlagField(1, HcalPhase1FlagLabels::HBHERun3StuckADC);
 
   rh->setAuxTDC(packTDCData(frame, soi));
 }
