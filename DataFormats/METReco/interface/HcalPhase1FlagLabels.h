@@ -25,6 +25,7 @@ namespace HcalPhase1FlagLabels {
 
   enum CommonFlag {
     /* 20 */ TimingFromTDC = 20,
+    /* 21 */ HBHERun3StuckADC = HcalCaloFlagLabels::HBHERun3StuckADC,
     /* 31 */ UserDefinedBit0 = HcalCaloFlagLabels::UserDefinedBit0
   };
 }  // namespace HcalPhase1FlagLabels
