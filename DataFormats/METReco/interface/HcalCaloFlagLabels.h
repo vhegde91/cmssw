@@ -23,6 +23,7 @@ namespace HcalCaloFlagLabels {
     HBHESpikeNoise = 13,
     HBHETriangleNoise = 14,
     HBHETS4TS5Noise = 15,
+    HBHERun3StuckADC = 21,
     HBHENegativeNoise = 27,
     HBHEPulseFitBit = 29,
     HBHEOOTPU = 30

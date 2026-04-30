@@ -18,6 +18,7 @@
 
 // system include files
 #include <cmath>
+#include <memory>
 #include <vector>
 #include <utility>
 #include <algorithm>
@@ -58,6 +59,7 @@
 #include "CondFormats/HcalObjects/interface/HBHENegativeEFilter.h"
 #include "CondFormats/DataRecord/interface/HBHENegativeEFilterRcd.h"
 
+#include "RecoLocalCalo/HcalRecAlgos/interface/HBHERun3Flags.h"
 // Parser for Phase 1 HB/HE reco algorithms
 #include "RecoLocalCalo/HcalRecAlgos/interface/parseHBHEPhase1AlgoDescription.h"
 
@@ -315,6 +317,7 @@ private:
   bool setNoiseFlagsQIE11_;
   bool setPulseShapeFlagsQIE8_;
   bool setPulseShapeFlagsQIE11_;
+  bool setHBHERun3Flags_;
 
   // Other members
   edm::EDGetTokenT<HBHEDigiCollection> tok_qie8_;
@@ -329,6 +332,7 @@ private:
   std::unique_ptr<HBHEStatusBitSetter> hbheFlagSetterQIE11_;
   std::unique_ptr<HBHEPulseShapeFlagSetter> hbhePulseShapeFlagSetterQIE8_;
   std::unique_ptr<HBHEPulseShapeFlagSetter> hbhePulseShapeFlagSetterQIE11_;
+  std::unique_ptr<HBHERun3Flags> hbheRun3Flags_;
 
   // ES tokens
   edm::ESGetToken<HcalTopology, HcalRecNumberingRecord> htopoToken_;
@@ -390,6 +394,7 @@ HBHEPhase1Reconstructor::HBHEPhase1Reconstructor(const edm::ParameterSet& conf)
       setNoiseFlagsQIE11_(conf.getParameter<bool>("setNoiseFlagsQIE11")),
       setPulseShapeFlagsQIE8_(conf.getParameter<bool>("setPulseShapeFlagsQIE8")),
       setPulseShapeFlagsQIE11_(conf.getParameter<bool>("setPulseShapeFlagsQIE11")),
+      setHBHERun3Flags_(conf.getParameter<bool>("setHBHERun3Flags")),
       reco_(parseHBHEPhase1AlgoDescription(conf.getParameter<edm::ParameterSet>("algorithm"), consumesCollector())),
       negEFilter_(nullptr) {
   // Check that the reco algorithm has been successfully configured
@@ -650,6 +655,15 @@ void HBHEPhase1Reconstructor::setAsicSpecificBits(const QIE11DataFrame& frame,
   if (setNegativeFlagsQIE11_)
     runHBHENegativeEFilter(info, rh);
 
+  if(setHBHERun3Flags_){
+    //uint32_t aux_b = rh->auxHBHE(), aux1_b = rh->auxPhase1();
+    hbheRun3Flags_->setStuckADCflagRun3(*rh, frame, info.nSamples());
+    //uint32_t aux_a = rh->auxHBHE(), aux1_a = rh->auxPhase1();
+    //if(aux_a!=aux_b)
+    //  std::cout<<"ieta:"<<rh->id().ieta()<<" iphi:"<<rh->id().iphi()<<" depth:"<<rh->id().depth()
+    //  <<" aux no change:"<<(aux_a==aux_b)<<" auxPhase1 no change:"<<(aux1_b==aux1_a)<<" bit21 before:"<<CaloRecHitAuxSetter::getBit(aux_b, 21)<<" bit21 after:"<<CaloRecHitAuxSetter::getBit(aux_a, 21)<<std::endl;
+  }
+  
   rh->setAuxTDC(packTDCData(frame, soi));
 }
 
@@ -849,6 +863,7 @@ void HBHEPhase1Reconstructor::fillDescriptions(edm::ConfigurationDescriptions& d
   desc.add<bool>("setNoiseFlagsQIE11", false);
   desc.add<bool>("setPulseShapeFlagsQIE8", true);
   desc.add<bool>("setPulseShapeFlagsQIE11", false);
+  desc.add<bool>("setHBHERun3Flags", true);
   desc.add<bool>("setLegacyFlagsQIE8", true);
   desc.add<bool>("setLegacyFlagsQIE11", false);
   {

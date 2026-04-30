@@ -59,6 +59,8 @@ bool HcalSeverityLevelComputer::getRecHitFlag(HcalSeverityDefinition& mydef, con
       setBit(HcalPhase1FlagLabels::HBHEPulseFitBit, mydef.HBHEFlagMask);
     else if (mybit == "HBHEOOTPU")
       setBit(HcalPhase1FlagLabels::HBHEOOTPU, mydef.HBHEFlagMask);
+    else if (mybit == "HBHERun3StuckADC")
+      setBit(HcalPhase1FlagLabels::HBHERun3StuckADC, mydef.HBHEFlagMask);
 
     // HF ++++++++++++++++++++
     else if (mybit == "HFLongShort")

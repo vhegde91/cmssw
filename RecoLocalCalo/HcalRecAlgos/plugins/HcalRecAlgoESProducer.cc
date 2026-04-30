@@ -209,7 +209,7 @@ void HcalRecAlgoESProducer::fillDescriptions(edm::ConfigurationDescriptions& des
       edm::ParameterSet temp2;
       temp2.addParameter<std::vector<std::string>>("RecHitFlags",
                                                    {
-                                                       "",
+						       "HBHERun3StuckADC",
                                                    });
       temp2.addParameter<std::vector<std::string>>("ChannelStatus",
                                                    {
