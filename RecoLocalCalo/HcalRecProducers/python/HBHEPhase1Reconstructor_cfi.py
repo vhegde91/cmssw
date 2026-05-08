@@ -94,6 +94,7 @@ hbheprereco = cms.EDProducer(
     setHBHERun3Flags = cms.bool(True),
     setLegacyFlagsQIE8 = cms.bool(True),
     setLegacyFlagsQIE11 = cms.bool(False),
+    HcalAcceptSeverityLevel  = cms.uint32(9), # allow hits with severity up to AND INCLUDING 9
 
     # Parameter sets configuring rechit status bit setters
     flagParametersQIE8 = cms.PSet(

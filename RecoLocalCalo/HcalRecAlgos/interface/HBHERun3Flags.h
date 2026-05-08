@@ -14,7 +14,7 @@ public:
   void setStuckADCflagRun3(HBHERecHit& rechit, const QIE11DataFrame& digi, const uint8_t nSamples);
 
 private:
-  static constexpr uint32_t stuckADC_min_ = 10;
+  static constexpr uint32_t stuckADC_min_ = 50;
   static constexpr uint8_t bitForStuckADC_ = HcalCaloFlagLabels::HBHERun3StuckADC;
 };
 

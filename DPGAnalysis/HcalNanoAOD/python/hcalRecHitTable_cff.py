@@ -16,7 +16,8 @@ hbheRecHitTable = cms.EDProducer("HBHERecHitFlatTableProducer",
                     iphi   = Var('id().iphi()', 'int', precision=-1, doc='iphi'),
                     depth  = Var('id().depth()', 'int', precision=-1, doc='depth'),
                     auxHBHE   = Var('auxHBHE()', 'uint', doc='HBHE aux (bits 0-3=severity 0-15)'),
-                    auxPhase1 = Var('auxPhase1()', 'uint', doc='HBHE aux Phase1')
+                    auxPhase1 = Var('auxPhase1()', 'uint', doc='HBHE aux Phase1'),
+                    flag = Var('flags()', 'uint', doc='HBHE flags')
                 )
 )
 

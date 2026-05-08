@@ -116,6 +116,8 @@ bool HcalSeverityLevelComputer::getRecHitFlag(HcalSeverityDefinition& mydef, con
       setBit(HcalCaloFlagLabels::HBHEPulseFitBit, mydef.HBHEFlagMask);
     else if (mybit == "HBHEOOTPU")
       setBit(HcalCaloFlagLabels::HBHEOOTPU, mydef.HBHEFlagMask);
+    else if (mybit == "HBHERun3StuckADC")
+      setBit(HcalCaloFlagLabels::HBHERun3StuckADC, mydef.HBHEFlagMask);
 
     // These are multi-bit counters; we may have to revisit how to set them in the SLComputer in the future
     else if (mybit == "HBHETimingTrustBits")
