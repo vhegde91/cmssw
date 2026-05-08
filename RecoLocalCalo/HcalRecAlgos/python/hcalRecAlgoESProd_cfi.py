@@ -45,6 +45,8 @@ run2_HCAL_2017.toModify(hcalRecAlgos,
                                  'HFS8S1Ratio',  
                                  'HFPET', 
                                  'HBHERun3StuckADC',
+                                 'HBHERun3repeatedADCblock',
+                                 'HBHERun3BadCapId',
                                  'HFSignalAsymmetry']
             ),
     },

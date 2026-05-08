@@ -28,6 +28,7 @@
 #include <algorithm>
 
 // user include files
+#include "DataFormats/METReco/interface/HcalCaloFlagLabels.h"
 #include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/stream/EDProducer.h"
@@ -64,8 +65,6 @@
 #include "CondFormats/DataRecord/interface/HBHENegativeEFilterRcd.h"
 
 #include "RecoLocalCalo/HcalRecAlgos/interface/HBHERun3Flags.h"
-#include "RecoLocalCalo/HcalRecAlgos/interface/HcalSeverityLevelComputer.h"
-#include "RecoLocalCalo/HcalRecAlgos/interface/HcalSeverityLevelComputerRcd.h"
 // Parser for Phase 1 HB/HE reco algorithms
 
 #include "RecoLocalCalo/HcalRecAlgos/interface/parseHBHEPhase1AlgoDescription.h"
@@ -326,7 +325,7 @@ private:
   bool setPulseShapeFlagsQIE11_;
   bool setHBHERun3Flags_;
 
-  uint32_t HcalAcceptSeverityLevel_;
+  uint32_t bunchCrossing_;
 
   // Other members
   edm::EDGetTokenT<HBHEDigiCollection> tok_qie8_;
@@ -350,9 +349,6 @@ private:
   edm::ESGetToken<HBHENegativeEFilter, HBHENegativeEFilterRcd> negToken_;
   edm::ESGetToken<HcalFrontEndMap, HcalFrontEndMapRcd> feMapToken_;
 
-  // ES tokens for setting the flags
-  edm::ESGetToken<HcalChannelQuality, HcalChannelQualityRcd> qualToken_;
-  edm::ESGetToken<HcalSeverityLevelComputer, HcalSeverityLevelComputerRcd> sevToken_;
 
   // For the function below, arguments "infoColl" and/or "rechits"
   // are allowed to be null.
@@ -361,8 +357,6 @@ private:
                    const HcalTopology& htopo,
                    const HcalDbService& cond,
                    const HcalChannelPropertiesVec& prop,
-                   const HcalChannelQuality &myChQual,
-                   const HcalSeverityLevelComputer &mySeverity,
                    const bool isRealData,
                    HBHEChannelInfo* info,
                    HBHEChannelInfoCollection* infoColl,
@@ -384,6 +378,7 @@ private:
   void setCommonStatusBits(const HBHEChannelInfo& info, const HcalCalibrations& calib, HBHERecHit* rh);
 
   void runHBHENegativeEFilter(const HBHEChannelInfo& info, HBHERecHit* rh);
+  void runHBHERun3FlagSetters(const QIE11DataFrame& frame, HBHERecHit* rh);
 };
 
 //
@@ -410,7 +405,6 @@ HBHEPhase1Reconstructor::HBHEPhase1Reconstructor(const edm::ParameterSet& conf)
       setPulseShapeFlagsQIE8_(conf.getParameter<bool>("setPulseShapeFlagsQIE8")),
       setPulseShapeFlagsQIE11_(conf.getParameter<bool>("setPulseShapeFlagsQIE11")),
       setHBHERun3Flags_(conf.getParameter<bool>("setHBHERun3Flags")),
-      HcalAcceptSeverityLevel_(conf.getParameter<uint32_t>("HcalAcceptSeverityLevel")),
       reco_(parseHBHEPhase1AlgoDescription(conf.getParameter<edm::ParameterSet>("algorithm"), consumesCollector())),
       negEFilter_(nullptr) {
   // Check that the reco algorithm has been successfully configured
@@ -459,9 +453,6 @@ HBHEPhase1Reconstructor::HBHEPhase1Reconstructor(const edm::ParameterSet& conf)
   htopoToken_ = esConsumes<HcalTopology, HcalRecNumberingRecord>();
   conditionsToken_ = esConsumes<HcalDbService, HcalDbRecord>();
   propertiesToken_ = esConsumes<HcalChannelPropertiesVec, HcalChannelPropertiesRecord>();
-  qualToken_ = esConsumes<HcalChannelQuality, HcalChannelQualityRcd>(edm::ESInputTag("", "withTopo"));
-  sevToken_ = esConsumes<HcalSeverityLevelComputer, HcalSeverityLevelComputerRcd>();
-
   if (setNegativeFlagsQIE8_ || setNegativeFlagsQIE11_)
     negToken_ = esConsumes<HBHENegativeEFilter, HBHENegativeEFilterRcd>();
   if (setNoiseFlagsQIE8_ || setNoiseFlagsQIE11_)
@@ -481,8 +472,6 @@ void HBHEPhase1Reconstructor::processData(const Collection& coll,
                                           const HcalTopology& htopo,
                                           const HcalDbService& cond,
                                           const HcalChannelPropertiesVec& prop,
-                                          const HcalChannelQuality &myChQual,
-                                          const HcalSeverityLevelComputer &mySeverity,
                                           const bool isRealData,
                                           HBHEChannelInfo* channelInfo,
                                           HBHEChannelInfoCollection* infos,
@@ -634,19 +623,7 @@ void HBHEPhase1Reconstructor::processData(const Collection& coll,
       if (rh.id().rawId()) {
         setAsicSpecificBits(frame, coder, *channelInfo, *properties.calib, soi, &rh);
         setCommonStatusBits(*channelInfo, *properties.calib, &rh);
-        // determine if the hit is good, bad, or recovered
-        const HcalDetId id = rh.detid();
-        const uint32_t recHitFlag = rh.auxPhase1();
-        const uint32_t dbStatusFlag = myChQual.getValues(id)->getValue();
-        uint32_t severityLevel = mySeverity.getSeverityLevel(id, recHitFlag, dbStatusFlag);
-        bool isRecovered = mySeverity.recoveredRecHit(id, recHitFlag);
-        //std::cout<<"sev:"<<severityLevel<<" HcalAcceptSeverityLevel_:"<<HcalAcceptSeverityLevel_<<"|";vvvvv
-        //nColl++;vvvvv
-        if (true || severityLevel == 0 || isRecovered || (severityLevel <= HcalAcceptSeverityLevel_)){
-          
-          rechits->push_back(rh);
-          //nCollAcc++; vvvvvv
-        }
+        rechits->push_back(rh);
       }
     }
   }
@@ -690,9 +667,10 @@ void HBHEPhase1Reconstructor::setAsicSpecificBits(const QIE11DataFrame& frame,
   if (setNegativeFlagsQIE11_)
     runHBHENegativeEFilter(info, rh);
 
-  if (setHBHERun3Flags_) {
+  if (setHBHERun3Flags_){
+    runHBHERun3FlagSetters(frame, rh);
     //uint32_t aux_b = rh->auxHBHE(), aux1_b = rh->auxPhase1();
-    hbheRun3Flags_->setStuckADCflagRun3(*rh, frame, info.nSamples());
+    //hbheRun3Flags_->setStuckADCflagRun3(*rh, frame, info.nSamples());
     //uint32_t aux_a = rh->auxHBHE(), aux1_a = rh->auxPhase1();
     //if(aux_a!=aux_b)
     //  std::cout<<"ieta:"<<rh->id().ieta()<<" iphi:"<<rh->id().iphi()<<" depth:"<<rh->id().depth()
@@ -702,7 +680,14 @@ void HBHEPhase1Reconstructor::setAsicSpecificBits(const QIE11DataFrame& frame,
   rh->setAuxTDC(packTDCData(frame, soi));
 }
 
-
+void HBHEPhase1Reconstructor::runHBHERun3FlagSetters(const QIE11DataFrame& frame, HBHERecHit* rh){
+  if(hbheRun3Flags_->isStuckADC(frame))
+    hbheRun3Flags_->setRecHitFlagRun3(rh, HcalCaloFlagLabels::HBHERun3StuckADC);
+  if(hbheRun3Flags_->repeatedADCblock(frame))
+    hbheRun3Flags_->setRecHitFlagRun3(rh, HcalCaloFlagLabels::HBHERun3repeatedADCblock);
+  if(hbheRun3Flags_->isBadCapId(frame, bunchCrossing_))
+    hbheRun3Flags_->setRecHitFlagRun3(rh, HcalCaloFlagLabels::HBHERun3BadCapId);
+}
 
 void HBHEPhase1Reconstructor::runHBHENegativeEFilter(const HBHEChannelInfo& info, HBHERecHit* rh) {
   double ts[HBHEChannelInfo::MAXSAMPLES];
@@ -724,8 +709,6 @@ void HBHEPhase1Reconstructor::produce(edm::Event& e, const edm::EventSetup& even
   // Fetch the calibrations
   const HcalDbService* conditions = &eventSetup.getData(conditionsToken_);
   const HcalChannelPropertiesVec* prop = &eventSetup.getData(propertiesToken_);
-  const HcalChannelQuality* myChQual = &eventSetup.getData(qualToken_);
-  const HcalSeverityLevelComputer* mySeverity = &eventSetup.getData(sevToken_);
 
   // Configure the negative energy filter
   if (setNegativeFlagsQIE8_ || setNegativeFlagsQIE11_) {
@@ -761,12 +744,13 @@ void HBHEPhase1Reconstructor::produce(edm::Event& e, const edm::EventSetup& even
 
   // Process the input collections, filling the output ones
   const bool isData = e.isRealData();
+  bunchCrossing_ = e.bunchCrossing();
   if (processQIE8_) {
     if (setNoiseFlagsQIE8_)
       hbheFlagSetterQIE8_->Clear();
 
     HBHEChannelInfo channelInfo(false, false);
-    processData<HBHEDataFrame>(*hbDigis, *htopo, *conditions, *prop, *myChQual, *mySeverity, isData, &channelInfo, infos.get(), out.get());
+    processData<HBHEDataFrame>(*hbDigis, *htopo, *conditions, *prop, isData, &channelInfo, infos.get(), out.get());
     if (setNoiseFlagsQIE8_)
       hbheFlagSetterQIE8_->SetFlagsFromRecHits(*out);
   }
@@ -776,7 +760,7 @@ void HBHEPhase1Reconstructor::produce(edm::Event& e, const edm::EventSetup& even
       hbheFlagSetterQIE11_->Clear();
 
     HBHEChannelInfo channelInfo(true, saveEffectivePedestal_);
-    processData<QIE11DataFrame>(*heDigis, *htopo, *conditions, *prop, *myChQual, *mySeverity, isData, &channelInfo, infos.get(), out.get());
+    processData<QIE11DataFrame>(*heDigis, *htopo, *conditions, *prop, isData, &channelInfo, infos.get(), out.get());
     if (setNoiseFlagsQIE11_)
       hbheFlagSetterQIE11_->SetFlagsFromRecHits(*out);
   }
@@ -903,7 +887,6 @@ void HBHEPhase1Reconstructor::fillDescriptions(edm::ConfigurationDescriptions& d
   desc.add<bool>("setPulseShapeFlagsQIE8", true);
   desc.add<bool>("setPulseShapeFlagsQIE11", false);
   desc.add<bool>("setHBHERun3Flags", true);
-  desc.add<uint32_t>("HcalAcceptSeverityLevel", 9);
   desc.add<bool>("setLegacyFlagsQIE8", true);
   desc.add<bool>("setLegacyFlagsQIE11", false);
   {

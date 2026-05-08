@@ -40,6 +40,8 @@ from Configuration.Eras.Modifier_run3_HB_cff import run3_HB
 def _modName(algos):
    HcalRemoveAddSevLevel.AddFlag(algos,"HBHENegativeNoise",8)
    HcalRemoveAddSevLevel.AddFlag(algos,"HBHERun3StuckADC",15)
+   HcalRemoveAddSevLevel.AddFlag(algos,"HBHERun3repeatedADCblock",15)# do we need this? vvvv
+   HcalRemoveAddSevLevel.AddFlag(algos,"HBHERun3BadCapId",15)# do we need this? vvvv
 run3_HB.toModify(hcalRecAlgos, _modName)
 
 

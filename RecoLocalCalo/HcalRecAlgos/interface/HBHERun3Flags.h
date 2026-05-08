@@ -11,11 +11,19 @@ public:
   HBHERun3Flags();
   ~HBHERun3Flags();
 
-  void setStuckADCflagRun3(HBHERecHit& rechit, const QIE11DataFrame& digi, const uint8_t nSamples);
+  void setRecHitFlagRun3(HBHERecHit *rechit, const uint32_t bitPosition);
+  bool repeatedADCblock(const QIE11DataFrame& digi);
+  bool isStuckADC(const QIE11DataFrame& digi);
+
+  bool isBadCapId(const QIE11DataFrame& digi, const uint32_t bunchCrossing);
 
 private:
   static constexpr uint32_t stuckADC_min_ = 50;
-  static constexpr uint8_t bitForStuckADC_ = HcalCaloFlagLabels::HBHERun3StuckADC;
+  static constexpr int repeatedADCblock_min_ = 10;
+
+  static constexpr short capidmbx_HB_ = 1;
+  static constexpr short capidmbx_HE_ = 1;
+  
 };
 
 #endif

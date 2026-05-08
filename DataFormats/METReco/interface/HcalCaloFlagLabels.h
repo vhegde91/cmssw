@@ -24,6 +24,8 @@ namespace HcalCaloFlagLabels {
     HBHETriangleNoise = 14,
     HBHETS4TS5Noise = 15,
     HBHERun3StuckADC = 21,
+    HBHERun3repeatedADCblock = 22,
+    HBHERun3BadCapId = 23,
     HBHENegativeNoise = 27,
     HBHEPulseFitBit = 29,
     HBHEOOTPU = 30

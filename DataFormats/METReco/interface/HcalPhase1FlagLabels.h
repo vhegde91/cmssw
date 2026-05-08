@@ -11,6 +11,8 @@ namespace HcalPhase1FlagLabels {
     /* 13 */ HBHESpikeNoise = HcalCaloFlagLabels::HBHESpikeNoise,
     /* 15 */ HBHETS4TS5Noise = HcalCaloFlagLabels::HBHETS4TS5Noise,
     /* 21 */ HBHERun3StuckADC = HcalCaloFlagLabels::HBHERun3StuckADC,
+    /* 22 */ HBHERun3repeatedADCblock = HcalCaloFlagLabels::HBHERun3repeatedADCblock,
+    /* 23 */ HBHERun3BadCapId = HcalCaloFlagLabels::HBHERun3BadCapId,
     /* 27 */ HBHENegativeNoise = HcalCaloFlagLabels::HBHENegativeNoise,
     /* 29 */ HBHEPulseFitBit = HcalCaloFlagLabels::HBHEPulseFitBit,
     /* 30 */ HBHEOOTPU = HcalCaloFlagLabels::HBHEOOTPU
