@@ -19,7 +19,7 @@ public:
 
 private:
   static constexpr uint32_t stuckADC_min_ = 50;
-  static constexpr int repeatedADCblock_min_ = 10;
+  static constexpr int repeatedADCblock_min_ = 0;
 
   static constexpr short capidmbx_HB_ = 1;
   static constexpr short capidmbx_HE_ = 1;

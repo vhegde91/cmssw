@@ -483,7 +483,6 @@ void HBHEPhase1Reconstructor::processData(const Collection& coll,
   const bool skipDroppedChannels = !(infos && saveDroppedInfos_);
 
   // Iterate over the input collection
-  //int nColl = 0, nCollAcc = 0; //vvvvvv
   for (typename Collection::const_iterator it = coll.begin(); it != coll.end(); ++it) {
     const DFrame& frame(*it);
     const HcalDetId cell(frame.id());
@@ -627,7 +626,6 @@ void HBHEPhase1Reconstructor::processData(const Collection& coll,
       }
     }
   }
-  //std::cout<<"nColl:"<<nColl<<" nCollAcc:"<<nCollAcc<<std::endl;vvvvvv
 }
 
 void HBHEPhase1Reconstructor::setCommonStatusBits(const HBHEChannelInfo& /* info */,
@@ -669,12 +667,6 @@ void HBHEPhase1Reconstructor::setAsicSpecificBits(const QIE11DataFrame& frame,
 
   if (setHBHERun3Flags_){
     runHBHERun3FlagSetters(frame, rh);
-    //uint32_t aux_b = rh->auxHBHE(), aux1_b = rh->auxPhase1();
-    //hbheRun3Flags_->setStuckADCflagRun3(*rh, frame, info.nSamples());
-    //uint32_t aux_a = rh->auxHBHE(), aux1_a = rh->auxPhase1();
-    //if(aux_a!=aux_b)
-    //  std::cout<<"ieta:"<<rh->id().ieta()<<" iphi:"<<rh->id().iphi()<<" depth:"<<rh->id().depth()
-    //  <<" aux no change:"<<(aux_a==aux_b)<<" auxPhase1 no change:"<<(aux1_b==aux1_a)<<" bit21 before:"<<CaloRecHitAuxSetter::getBit(aux_b, 21)<<" bit21 after:"<<CaloRecHitAuxSetter::getBit(aux_a, 21)<<std::endl;
   }
 
   rh->setAuxTDC(packTDCData(frame, soi));
@@ -683,7 +675,7 @@ void HBHEPhase1Reconstructor::setAsicSpecificBits(const QIE11DataFrame& frame,
 void HBHEPhase1Reconstructor::runHBHERun3FlagSetters(const QIE11DataFrame& frame, HBHERecHit* rh){
   if(hbheRun3Flags_->isStuckADC(frame))
     hbheRun3Flags_->setRecHitFlagRun3(rh, HcalCaloFlagLabels::HBHERun3StuckADC);
-  if(hbheRun3Flags_->repeatedADCblock(frame))
+  else if(hbheRun3Flags_->repeatedADCblock(frame))
     hbheRun3Flags_->setRecHitFlagRun3(rh, HcalCaloFlagLabels::HBHERun3repeatedADCblock);
   if(hbheRun3Flags_->isBadCapId(frame, bunchCrossing_))
     hbheRun3Flags_->setRecHitFlagRun3(rh, HcalCaloFlagLabels::HBHERun3BadCapId);

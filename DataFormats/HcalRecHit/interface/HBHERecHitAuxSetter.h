@@ -27,9 +27,6 @@ struct HBHERecHitAuxSetter {
   static const unsigned MASK_SOI = 0xf;
   static const unsigned OFF_SOI = 20;
 
-  // ADC related issues in Run 3
-  static const unsigned STUCK_ADC = 21;
-
   // CAPID for the sample of interest.
   static const unsigned MASK_CAPID = 0x3;
   static const unsigned OFF_CAPID = 24;
@@ -76,7 +73,6 @@ constexpr void HBHERecHitAuxSetter::setAux(const HBHEChannelInfo& info, HBHERecH
   setBit(&auxPhase1, OFF_DROPPED, info.isDropped());
   setBit(&auxPhase1, OFF_LINK_ERR, info.hasLinkError());
   setBit(&auxPhase1, OFF_CAPID_ERR, info.hasCapidError());
-  setBit(&auxPhase1, STUCK_ADC, false); //by default it is false. Check and set it using HBHERun3Flags
 
   // Copy the aux words into the rechit
   rechit->setAux(aux);
