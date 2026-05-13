@@ -13,6 +13,7 @@ namespace HcalPhase1FlagLabels {
     /* 21 */ HBHERun3StuckADC = HcalCaloFlagLabels::HBHERun3StuckADC,
     /* 22 */ HBHERun3repeatedADCblock = HcalCaloFlagLabels::HBHERun3repeatedADCblock,
     /* 23 */ HBHERun3BadCapId = HcalCaloFlagLabels::HBHERun3BadCapId,
+    /* 24 */ HBHERun3NonrotatingCapId = HcalCaloFlagLabels::HBHERun3NonrotatingCapId,
     /* 27 */ HBHENegativeNoise = HcalCaloFlagLabels::HBHENegativeNoise,
     /* 29 */ HBHEPulseFitBit = HcalCaloFlagLabels::HBHEPulseFitBit,
     /* 30 */ HBHEOOTPU = HcalCaloFlagLabels::HBHEOOTPU

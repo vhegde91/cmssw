@@ -65,6 +65,8 @@ bool HcalSeverityLevelComputer::getRecHitFlag(HcalSeverityDefinition& mydef, con
       setBit(HcalPhase1FlagLabels::HBHERun3repeatedADCblock, mydef.HBHEFlagMask);
     else if (mybit == "HBHERun3BadCapId")
       setBit(HcalPhase1FlagLabels::HBHERun3BadCapId, mydef.HBHEFlagMask);
+    else if (mybit == "HBHERun3NonrotatingCapId")
+      setBit(HcalPhase1FlagLabels::HBHERun3NonrotatingCapId, mydef.HBHEFlagMask);
 
     // HF ++++++++++++++++++++
     else if (mybit == "HFLongShort")
@@ -126,6 +128,8 @@ bool HcalSeverityLevelComputer::getRecHitFlag(HcalSeverityDefinition& mydef, con
       setBit(HcalCaloFlagLabels::HBHERun3repeatedADCblock, mydef.HBHEFlagMask);
     else if (mybit == "HBHERun3BadCapId")
       setBit(HcalCaloFlagLabels::HBHERun3BadCapId, mydef.HBHEFlagMask);
+    else if (mybit == "HBHERun3NonrotatingCapId")
+      setBit(HcalPhase1FlagLabels::HBHERun3NonrotatingCapId, mydef.HBHEFlagMask);
 
     // These are multi-bit counters; we may have to revisit how to set them in the SLComputer in the future
     else if (mybit == "HBHETimingTrustBits")

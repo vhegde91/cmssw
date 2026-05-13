@@ -11,11 +11,11 @@ public:
   HBHERun3Flags();
   ~HBHERun3Flags();
 
-  void setRecHitFlagRun3(HBHERecHit *rechit, const uint32_t bitPosition);
   bool repeatedADCblock(const QIE11DataFrame& digi);
   bool isStuckADC(const QIE11DataFrame& digi);
 
-  bool isBadCapId(const QIE11DataFrame& digi, const uint32_t bunchCrossing);
+  bool isBadCapId(const QIE11DataFrame& digi, const int soi, const uint32_t bunchCrossing);
+  bool nonRotatingCapId(const QIE11DataFrame& digi, const int soi, const uint32_t bx);
 
 private:
   static constexpr uint32_t stuckADC_min_ = 50;

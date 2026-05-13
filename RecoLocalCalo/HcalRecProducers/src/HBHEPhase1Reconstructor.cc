@@ -378,7 +378,7 @@ private:
   void setCommonStatusBits(const HBHEChannelInfo& info, const HcalCalibrations& calib, HBHERecHit* rh);
 
   void runHBHENegativeEFilter(const HBHEChannelInfo& info, HBHERecHit* rh);
-  void runHBHERun3FlagSetters(const QIE11DataFrame& frame, HBHERecHit* rh);
+  void runHBHERun3FlagSetters(const QIE11DataFrame& frame, const int soi, HBHERecHit* rh);
 };
 
 //
@@ -666,19 +666,21 @@ void HBHEPhase1Reconstructor::setAsicSpecificBits(const QIE11DataFrame& frame,
     runHBHENegativeEFilter(info, rh);
 
   if (setHBHERun3Flags_){
-    runHBHERun3FlagSetters(frame, rh);
+    runHBHERun3FlagSetters(frame, soi, rh);
   }
 
   rh->setAuxTDC(packTDCData(frame, soi));
 }
 
-void HBHEPhase1Reconstructor::runHBHERun3FlagSetters(const QIE11DataFrame& frame, HBHERecHit* rh){
+void HBHEPhase1Reconstructor::runHBHERun3FlagSetters(const QIE11DataFrame& frame, const int soi, HBHERecHit* rh){
   if(hbheRun3Flags_->isStuckADC(frame))
-    hbheRun3Flags_->setRecHitFlagRun3(rh, HcalCaloFlagLabels::HBHERun3StuckADC);
+    rh->setFlagField(1U, HcalCaloFlagLabels::HBHERun3StuckADC);
   else if(hbheRun3Flags_->repeatedADCblock(frame))
-    hbheRun3Flags_->setRecHitFlagRun3(rh, HcalCaloFlagLabels::HBHERun3repeatedADCblock);
-  if(hbheRun3Flags_->isBadCapId(frame, bunchCrossing_))
-    hbheRun3Flags_->setRecHitFlagRun3(rh, HcalCaloFlagLabels::HBHERun3BadCapId);
+    rh->setFlagField(1U,HcalCaloFlagLabels::HBHERun3repeatedADCblock);
+  if(hbheRun3Flags_->isBadCapId(frame, soi, bunchCrossing_))
+    rh->setFlagField(1U,HcalCaloFlagLabels::HBHERun3BadCapId);
+  else if(hbheRun3Flags_->nonRotatingCapId(frame, soi, bunchCrossing_))
+    rh->setFlagField(1U,HcalCaloFlagLabels::HBHERun3NonrotatingCapId);
 }
 
 void HBHEPhase1Reconstructor::runHBHENegativeEFilter(const HBHEChannelInfo& info, HBHERecHit* rh) {

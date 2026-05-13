@@ -47,6 +47,7 @@ run2_HCAL_2017.toModify(hcalRecAlgos,
                                  'HBHERun3StuckADC',
                                  'HBHERun3repeatedADCblock',
                                  'HBHERun3BadCapId',
+                                 'HBHERun3NonrotatingCapId',
                                  'HFSignalAsymmetry']
             ),
     },
