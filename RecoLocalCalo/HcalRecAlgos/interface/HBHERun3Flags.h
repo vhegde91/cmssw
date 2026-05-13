@@ -23,7 +23,6 @@ private:
 
   static constexpr short capidmbx_HB_ = 1;
   static constexpr short capidmbx_HE_ = 1;
-  
 };
 
 #endif

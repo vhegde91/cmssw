@@ -349,7 +349,6 @@ private:
   edm::ESGetToken<HBHENegativeEFilter, HBHENegativeEFilterRcd> negToken_;
   edm::ESGetToken<HcalFrontEndMap, HcalFrontEndMapRcd> feMapToken_;
 
-
   // For the function below, arguments "infoColl" and/or "rechits"
   // are allowed to be null.
   template <class DataFrame, class Collection>
@@ -665,22 +664,22 @@ void HBHEPhase1Reconstructor::setAsicSpecificBits(const QIE11DataFrame& frame,
   if (setNegativeFlagsQIE11_)
     runHBHENegativeEFilter(info, rh);
 
-  if (setHBHERun3Flags_){
+  if (setHBHERun3Flags_) {
     runHBHERun3FlagSetters(frame, soi, rh);
   }
 
   rh->setAuxTDC(packTDCData(frame, soi));
 }
 
-void HBHEPhase1Reconstructor::runHBHERun3FlagSetters(const QIE11DataFrame& frame, const int soi, HBHERecHit* rh){
-  if(hbheRun3Flags_->isStuckADC(frame))
+void HBHEPhase1Reconstructor::runHBHERun3FlagSetters(const QIE11DataFrame& frame, const int soi, HBHERecHit* rh) {
+  if (hbheRun3Flags_->isStuckADC(frame))
     rh->setFlagField(1U, HcalCaloFlagLabels::HBHERun3StuckADC);
-  else if(hbheRun3Flags_->repeatedADCblock(frame))
-    rh->setFlagField(1U,HcalCaloFlagLabels::HBHERun3repeatedADCblock);
-  if(hbheRun3Flags_->isBadCapId(frame, soi, bunchCrossing_))
-    rh->setFlagField(1U,HcalCaloFlagLabels::HBHERun3BadCapId);
-  else if(hbheRun3Flags_->nonRotatingCapId(frame, soi, bunchCrossing_))
-    rh->setFlagField(1U,HcalCaloFlagLabels::HBHERun3NonrotatingCapId);
+  else if (hbheRun3Flags_->repeatedADCblock(frame))
+    rh->setFlagField(1U, HcalCaloFlagLabels::HBHERun3repeatedADCblock);
+  if (hbheRun3Flags_->isBadCapId(frame, soi, bunchCrossing_))
+    rh->setFlagField(1U, HcalCaloFlagLabels::HBHERun3BadCapId);
+  else if (hbheRun3Flags_->nonRotatingCapId(frame, soi, bunchCrossing_))
+    rh->setFlagField(1U, HcalCaloFlagLabels::HBHERun3NonrotatingCapId);
 }
 
 void HBHEPhase1Reconstructor::runHBHENegativeEFilter(const HBHEChannelInfo& info, HBHERecHit* rh) {
