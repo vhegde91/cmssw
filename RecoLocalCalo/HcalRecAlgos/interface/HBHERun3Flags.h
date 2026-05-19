@@ -11,18 +11,18 @@ public:
   HBHERun3Flags();
   ~HBHERun3Flags();
 
-  bool repeatedADCblock(const QIE11DataFrame& digi);
+  bool repeatedADCblock(const QIE11DataFrame& digi, const int soi);
   bool isStuckADC(const QIE11DataFrame& digi);
 
   bool isBadCapId(const QIE11DataFrame& digi, const int soi, const uint32_t bunchCrossing);
   bool nonRotatingCapId(const QIE11DataFrame& digi, const int soi, const uint32_t bx);
 
 private:
-  static constexpr uint32_t stuckADC_min_ = 50;
-  static constexpr int repeatedADCblock_min_ = 0;
+  static constexpr uint32_t stuckADC_min_ = 30;
+  static constexpr int repeatedADCblock_min_ = 30;
 
-  static constexpr short capidmbx_HB_ = 1;
-  static constexpr short capidmbx_HE_ = 1;
+  static constexpr short expCapIdInSOI_ = 1;
+  static constexpr short nCapsQIE11_ = 4;
 };
 
 #endif

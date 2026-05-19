@@ -14,7 +14,7 @@
 // Original Author:  Igor Volobouev
 //         Created:  Tue, 21 Jun 2016 00:56:40 GMT
 //
-//         Updated: 17 Apr 2026 (this line only)
+//         Updated: 19 May 2026
 //
 
 // system include files
@@ -325,6 +325,7 @@ private:
   bool setPulseShapeFlagsQIE11_;
   bool setHBHERun3Flags_;
 
+  bool isData_;
   uint32_t bunchCrossing_;
 
   // Other members
@@ -664,7 +665,7 @@ void HBHEPhase1Reconstructor::setAsicSpecificBits(const QIE11DataFrame& frame,
   if (setNegativeFlagsQIE11_)
     runHBHENegativeEFilter(info, rh);
 
-  if (setHBHERun3Flags_) {
+  if (isData_ && setHBHERun3Flags_) {
     runHBHERun3FlagSetters(frame, soi, rh);
   }
 
@@ -674,7 +675,7 @@ void HBHEPhase1Reconstructor::setAsicSpecificBits(const QIE11DataFrame& frame,
 void HBHEPhase1Reconstructor::runHBHERun3FlagSetters(const QIE11DataFrame& frame, const int soi, HBHERecHit* rh) {
   if (hbheRun3Flags_->isStuckADC(frame))
     rh->setFlagField(1U, HcalCaloFlagLabels::HBHERun3StuckADC);
-  else if (hbheRun3Flags_->repeatedADCblock(frame))
+  if (hbheRun3Flags_->repeatedADCblock(frame, soi))
     rh->setFlagField(1U, HcalCaloFlagLabels::HBHERun3repeatedADCblock);
   if (hbheRun3Flags_->isBadCapId(frame, soi, bunchCrossing_))
     rh->setFlagField(1U, HcalCaloFlagLabels::HBHERun3BadCapId);
@@ -736,14 +737,14 @@ void HBHEPhase1Reconstructor::produce(edm::Event& e, const edm::EventSetup& even
   }
 
   // Process the input collections, filling the output ones
-  const bool isData = e.isRealData();
+  isData_ = e.isRealData();
   bunchCrossing_ = e.bunchCrossing();
   if (processQIE8_) {
     if (setNoiseFlagsQIE8_)
       hbheFlagSetterQIE8_->Clear();
 
     HBHEChannelInfo channelInfo(false, false);
-    processData<HBHEDataFrame>(*hbDigis, *htopo, *conditions, *prop, isData, &channelInfo, infos.get(), out.get());
+    processData<HBHEDataFrame>(*hbDigis, *htopo, *conditions, *prop, isData_, &channelInfo, infos.get(), out.get());
     if (setNoiseFlagsQIE8_)
       hbheFlagSetterQIE8_->SetFlagsFromRecHits(*out);
   }
@@ -753,7 +754,7 @@ void HBHEPhase1Reconstructor::produce(edm::Event& e, const edm::EventSetup& even
       hbheFlagSetterQIE11_->Clear();
 
     HBHEChannelInfo channelInfo(true, saveEffectivePedestal_);
-    processData<QIE11DataFrame>(*heDigis, *htopo, *conditions, *prop, isData, &channelInfo, infos.get(), out.get());
+    processData<QIE11DataFrame>(*heDigis, *htopo, *conditions, *prop, isData_, &channelInfo, infos.get(), out.get());
     if (setNoiseFlagsQIE11_)
       hbheFlagSetterQIE11_->SetFlagsFromRecHits(*out);
   }

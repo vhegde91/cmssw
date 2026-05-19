@@ -1,3 +1,7 @@
+/*
+Identify bad recHits based on ADC values and capID misalignment.
+Relevant for Run 3 HBHE channels which use QIE11.
+*/
 #include "RecoLocalCalo/HcalRecAlgos/interface/HBHERun3Flags.h"
 #include <cstdint>
 #include <iostream>
@@ -23,74 +27,53 @@ bool HBHERun3Flags::isStuckADC(const QIE11DataFrame& digi) {  // All ADC values 
   return true;
 }
 
-bool HBHERun3Flags::repeatedADCblock(
-    const QIE11DataFrame&
-        digi) {  //looks for patterns like A B C D (E) A B C D (E) and requires exaclty 8 (or 10) samples
+bool HBHERun3Flags::repeatedADCblock(const QIE11DataFrame& digi, const int soi) {  //looks for patterns like A B C D A B C D. ACD value should be > threshold in soi. Requires exaclty 8 samples
+  if (isStuckADC(digi))
+    return false;
+
   uint8_t nSamples = digi.samples();
   if (nSamples != 8 && nSamples != 10)
     return false;
-  int maxADC = 0;
+
+  if (soi >= nSamples || digi[soi].adc() <= repeatedADCblock_min_)
+    return false;
+  
   int nHalf = nSamples / 2;
   for (int i = 0; i < nHalf; i++) {
-    if (digi[i].adc() == digi[i + nHalf].adc()) {
-      if (digi[i].adc() > maxADC)
-        maxADC = digi[i].adc();
-    } else {
+    if (digi[i].adc() != digi[i + nHalf].adc())
       return false;
-    }
   }
-  if (maxADC < repeatedADCblock_min_)
-    return false;
   return true;
 }
 
 bool HBHERun3Flags::isBadCapId(
     const QIE11DataFrame& digi,
     const int soi,
-    const uint32_t bx) {  //Does not pass (capId - bunchCrossing)%4 = a known value for the soi
-  HcalDetId const& did = digi.detid();
-  short this_capidmbx = (digi[soi].capid() - bx) % 4;
-  if (this_capidmbx < 0)
-    this_capidmbx += 4;
+    const uint32_t bx) {  //Does not pass (capId - bunchCrossing)%nCapsQIE11_ = a known value for the soi, where nCapsQIE11_ = 4
+  if (soi >= digi.samples()) return false;
 
-  bool good_capidmbx = true;
-  if (did.subdet() == HcalBarrel)
-    good_capidmbx = (capidmbx_HB_ == this_capidmbx);
-  else if (did.subdet() == HcalEndcap)
-    good_capidmbx = (capidmbx_HE_ == this_capidmbx);
-  else {
-    throw cms::Exception("HBHERun3Flags")
-        << "Failed to get either HcalBarrel or HcalEndcap as Hcal subdet Id while setting HBHERun3 BadCapId flag"
-        << std::endl;
-  }
-  return !good_capidmbx;
+  short this_capidmbx = (digi[soi].capid() - bx) % nCapsQIE11_;
+  if (this_capidmbx < 0)
+    this_capidmbx += nCapsQIE11_;
+
+  return (expCapIdInSOI_ != this_capidmbx);
 }
 
 bool HBHERun3Flags::nonRotatingCapId(
     const QIE11DataFrame& digi,
     const int soi,
-    const uint32_t bx) {  //Does not pass (capId - bunchCrossing)%4 = a known value for at least one TS
+    const uint32_t bx) {  //Does not pass (capId - bunchCrossing)%nCapsQIE11_ = a known value for at least one TS
   uint8_t nSamples = digi.samples();
 
-  HcalDetId const& did = digi.detid();
-  short expCapidInSOI = -10;
-  if (did.subdet() == HcalBarrel)
-    expCapidInSOI = capidmbx_HB_;
-  else if (did.subdet() == HcalEndcap)
-    expCapidInSOI = capidmbx_HE_;
-  else {
-    throw cms::Exception("HBHERun3Flags") << "Failed to get either HcalBarrel or HcalEndcap as Hcal subdet Id while "
-                                             "setting HBHERun3 nonRotatingCapId flag"
-                                          << std::endl;
-  }  //got expected CapId in soi
-
+  if (soi >= nSamples) return false;
+  
   for (int i = 0; i < nSamples; i++) {
-    short this_capidmbx = (digi[i].capid() - bx) % 4;
+    short this_capidmbx = (digi[i].capid() - bx) % nCapsQIE11_;
     if (this_capidmbx < 0)
-      this_capidmbx += 4;
-    short this_exp_capidmbx = (expCapidInSOI + (i - soi)) % 4;
+      this_capidmbx += nCapsQIE11_;
+    short this_exp_capidmbx = (expCapIdInSOI_ + (i - soi)) % nCapsQIE11_;
     if (this_exp_capidmbx < 0)
-      this_exp_capidmbx += 4;
+      this_exp_capidmbx += nCapsQIE11_;
     if (this_capidmbx != this_exp_capidmbx)
       return true;
   }
