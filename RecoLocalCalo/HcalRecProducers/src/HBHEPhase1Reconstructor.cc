@@ -28,7 +28,6 @@
 #include <algorithm>
 
 // user include files
-#include "DataFormats/METReco/interface/HcalCaloFlagLabels.h"
 #include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/stream/EDProducer.h"
@@ -325,9 +324,6 @@ private:
   bool setPulseShapeFlagsQIE11_;
   bool setHBHERun3Flags_;
 
-  bool isData_;
-  uint32_t bunchCrossing_;
-
   // Other members
   edm::EDGetTokenT<HBHEDigiCollection> tok_qie8_;
   edm::EDGetTokenT<QIE11DigiCollection> tok_qie11_;
@@ -358,6 +354,7 @@ private:
                    const HcalDbService& cond,
                    const HcalChannelPropertiesVec& prop,
                    const bool isRealData,
+                   const uint32_t bunchCrossing,
                    HBHEChannelInfo* info,
                    HBHEChannelInfoCollection* infoColl,
                    HBHERecHitCollection* rechits);
@@ -368,17 +365,21 @@ private:
                            const HBHEChannelInfo& info,
                            const HcalCalibrations& calib,
                            int soi,
+                           const bool,
+                           const uint32_t,
                            HBHERecHit* rh);
   void setAsicSpecificBits(const QIE11DataFrame& frame,
                            const HcalCoder& coder,
                            const HBHEChannelInfo& info,
                            const HcalCalibrations& calib,
                            int soi,
+                           const bool isRealData,
+                           const uint32_t bunchCrossing,
                            HBHERecHit* rh);
   void setCommonStatusBits(const HBHEChannelInfo& info, const HcalCalibrations& calib, HBHERecHit* rh);
 
   void runHBHENegativeEFilter(const HBHEChannelInfo& info, HBHERecHit* rh);
-  void runHBHERun3FlagSetters(const QIE11DataFrame& frame, const int soi, HBHERecHit* rh);
+  void runHBHERun3FlagSetters(const QIE11DataFrame& frame, const int soi, const uint32_t bunchCrossing, HBHERecHit* rh);
 };
 
 //
@@ -473,6 +474,7 @@ void HBHEPhase1Reconstructor::processData(const Collection& coll,
                                           const HcalDbService& cond,
                                           const HcalChannelPropertiesVec& prop,
                                           const bool isRealData,
+                                          const uint32_t bunchCrossing,
                                           HBHEChannelInfo* channelInfo,
                                           HBHEChannelInfoCollection* infos,
                                           HBHERecHitCollection* rechits) {
@@ -620,7 +622,7 @@ void HBHEPhase1Reconstructor::processData(const Collection& coll,
         pptr = properties.paramTs;
       HBHERecHit rh = reco_->reconstruct(*channelInfo, pptr, *properties.calib, isRealData);
       if (rh.id().rawId()) {
-        setAsicSpecificBits(frame, coder, *channelInfo, *properties.calib, soi, &rh);
+        setAsicSpecificBits(frame, coder, *channelInfo, *properties.calib, soi, isRealData, bunchCrossing, &rh);
         setCommonStatusBits(*channelInfo, *properties.calib, &rh);
         rechits->push_back(rh);
       }
@@ -637,6 +639,8 @@ void HBHEPhase1Reconstructor::setAsicSpecificBits(const HBHEDataFrame& frame,
                                                   const HBHEChannelInfo& info,
                                                   const HcalCalibrations& calib,
                                                   int /* soi */,
+                                                  const bool /*isRealData*/,
+                                                  const uint32_t /*bunchcrossing*/,
                                                   HBHERecHit* rh) {
   if (setNoiseFlagsQIE8_)
     hbheFlagSetterQIE8_->rememberHit(*rh);
@@ -655,6 +659,8 @@ void HBHEPhase1Reconstructor::setAsicSpecificBits(const QIE11DataFrame& frame,
                                                   const HBHEChannelInfo& info,
                                                   const HcalCalibrations& calib,
                                                   const int soi,
+                                                  const bool isRealData,
+                                                  const uint32_t bunchCrossing,
                                                   HBHERecHit* rh) {
   if (setNoiseFlagsQIE11_)
     hbheFlagSetterQIE11_->rememberHit(*rh);
@@ -665,22 +671,25 @@ void HBHEPhase1Reconstructor::setAsicSpecificBits(const QIE11DataFrame& frame,
   if (setNegativeFlagsQIE11_)
     runHBHENegativeEFilter(info, rh);
 
-  if (isData_ && setHBHERun3Flags_) {
-    runHBHERun3FlagSetters(frame, soi, rh);
+  if (isRealData && setHBHERun3Flags_) {
+    runHBHERun3FlagSetters(frame, soi, bunchCrossing, rh);
   }
 
   rh->setAuxTDC(packTDCData(frame, soi));
 }
 
-void HBHEPhase1Reconstructor::runHBHERun3FlagSetters(const QIE11DataFrame& frame, const int soi, HBHERecHit* rh) {
+void HBHEPhase1Reconstructor::runHBHERun3FlagSetters(const QIE11DataFrame& frame,
+                                                     const int soi,
+                                                     const uint32_t bunchCrossing,
+                                                     HBHERecHit* rh) {
   if (hbheRun3Flags_->isStuckADC(frame))
-    rh->setFlagField(1U, HcalCaloFlagLabels::HBHERun3StuckADC);
+    rh->setFlagField(1U, HcalPhase1FlagLabels::HBHERun3StuckADC);
   if (hbheRun3Flags_->repeatedADCblock(frame, soi))
-    rh->setFlagField(1U, HcalCaloFlagLabels::HBHERun3repeatedADCblock);
-  if (hbheRun3Flags_->isBadCapId(frame, soi, bunchCrossing_))
-    rh->setFlagField(1U, HcalCaloFlagLabels::HBHERun3BadCapId);
-  else if (hbheRun3Flags_->nonRotatingCapId(frame, soi, bunchCrossing_))
-    rh->setFlagField(1U, HcalCaloFlagLabels::HBHERun3NonrotatingCapId);
+    rh->setFlagField(1U, HcalPhase1FlagLabels::HBHERun3repeatedADCblock);
+  if (hbheRun3Flags_->isBadCapId(frame, soi, bunchCrossing))
+    rh->setFlagField(1U, HcalPhase1FlagLabels::HBHERun3BadCapId);
+  else if (hbheRun3Flags_->nonRotatingCapId(frame, soi, bunchCrossing))
+    rh->setFlagField(1U, HcalPhase1FlagLabels::HBHERun3NonrotatingCapId);
 }
 
 void HBHEPhase1Reconstructor::runHBHENegativeEFilter(const HBHEChannelInfo& info, HBHERecHit* rh) {
@@ -737,14 +746,15 @@ void HBHEPhase1Reconstructor::produce(edm::Event& e, const edm::EventSetup& even
   }
 
   // Process the input collections, filling the output ones
-  isData_ = e.isRealData();
-  bunchCrossing_ = e.bunchCrossing();
+  const bool isData = e.isRealData();
+  const uint32_t bunchCrossing = e.bunchCrossing();
   if (processQIE8_) {
     if (setNoiseFlagsQIE8_)
       hbheFlagSetterQIE8_->Clear();
 
     HBHEChannelInfo channelInfo(false, false);
-    processData<HBHEDataFrame>(*hbDigis, *htopo, *conditions, *prop, isData_, &channelInfo, infos.get(), out.get());
+    processData<HBHEDataFrame>(
+        *hbDigis, *htopo, *conditions, *prop, isData, bunchCrossing, &channelInfo, infos.get(), out.get());
     if (setNoiseFlagsQIE8_)
       hbheFlagSetterQIE8_->SetFlagsFromRecHits(*out);
   }
@@ -754,7 +764,8 @@ void HBHEPhase1Reconstructor::produce(edm::Event& e, const edm::EventSetup& even
       hbheFlagSetterQIE11_->Clear();
 
     HBHEChannelInfo channelInfo(true, saveEffectivePedestal_);
-    processData<QIE11DataFrame>(*heDigis, *htopo, *conditions, *prop, isData_, &channelInfo, infos.get(), out.get());
+    processData<QIE11DataFrame>(
+        *heDigis, *htopo, *conditions, *prop, isData, bunchCrossing, &channelInfo, infos.get(), out.get());
     if (setNoiseFlagsQIE11_)
       hbheFlagSetterQIE11_->SetFlagsFromRecHits(*out);
   }

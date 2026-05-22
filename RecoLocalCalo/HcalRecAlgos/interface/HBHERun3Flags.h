@@ -4,7 +4,6 @@
 #include <cstdint>
 #include "DataFormats/HcalRecHit/interface/HBHERecHit.h"
 #include "DataFormats/HcalDigi/interface/QIE11DataFrame.h"
-#include "DataFormats/METReco/interface/HcalCaloFlagLabels.h"
 
 class HBHERun3Flags {
 public:
