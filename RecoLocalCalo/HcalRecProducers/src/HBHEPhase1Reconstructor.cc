@@ -688,7 +688,7 @@ void HBHEPhase1Reconstructor::runHBHERun3FlagSetters(const QIE11DataFrame& frame
     rh->setFlagField(1U, HcalPhase1FlagLabels::HBHERun3repeatedADCblock);
   if (hbheRun3Flags_->isBadCapId(frame, soi, bunchCrossing))
     rh->setFlagField(1U, HcalPhase1FlagLabels::HBHERun3BadCapId);
-  else if (hbheRun3Flags_->nonRotatingCapId(frame, soi, bunchCrossing))
+  else if (hbheRun3Flags_->nonRotatingCapId(frame))
     rh->setFlagField(1U, HcalPhase1FlagLabels::HBHERun3NonrotatingCapId);
 }
 

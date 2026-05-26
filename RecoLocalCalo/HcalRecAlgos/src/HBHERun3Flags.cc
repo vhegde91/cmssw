@@ -34,7 +34,7 @@ bool HBHERun3Flags::repeatedADCblock(const QIE11DataFrame& digi, const int soi) 
     return false;
 
   uint8_t nSamples = digi.samples();
-  if (nSamples != 8 && nSamples != 10)
+  if (nSamples != 8)
     return false;
 
   if (soi >= nSamples || digi[soi].adc() <= repeatedADCblock_min_)
@@ -60,21 +60,19 @@ bool HBHERun3Flags::isBadCapId(const QIE11DataFrame& digi, const int soi, const 
   return (expCapIdInSOI_ != this_capidmbx);
 }
 
-//Does not pass (capId - bunchCrossing)%nCapsQIE11_ = a known value for at least one TS
-bool HBHERun3Flags::nonRotatingCapId(const QIE11DataFrame& digi, const int soi, const uint32_t bx) {
+//CapIds are not equal to any of these 0,1,2,3,0,1,2,3 or 1,2,3,0,1,2,3,0 etc
+bool HBHERun3Flags::nonRotatingCapId(const QIE11DataFrame& digi) {
   uint8_t nSamples = digi.samples();
 
-  if (soi >= nSamples)
+  if (nSamples < 2)
     return false;
 
-  for (int i = 0; i < nSamples; i++) {
-    short this_capidmbx = (digi[i].capid() - bx) % nCapsQIE11_;
-    if (this_capidmbx < 0)
-      this_capidmbx += nCapsQIE11_;
-    short this_exp_capidmbx = (expCapIdInSOI_ + (i - soi)) % nCapsQIE11_;
-    if (this_exp_capidmbx < 0)
-      this_exp_capidmbx += nCapsQIE11_;
-    if (this_capidmbx != this_exp_capidmbx)
+  for (int i = 1; i < nSamples; i++) {
+    int expCapId = digi[i - 1].capid() + 1;
+    if (expCapId == nCapsQIE11_)
+      expCapId = 0;
+
+    if (digi[i].capid() != expCapId)
       return true;
   }
   return false;
