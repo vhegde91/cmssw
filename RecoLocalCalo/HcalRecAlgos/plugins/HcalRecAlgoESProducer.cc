@@ -143,6 +143,10 @@ void HcalRecAlgoESProducer::fillDescriptions(edm::ConfigurationDescriptions& des
                                                        "ADCSaturationBit",
                                                        "HBHEIsolatedNoise",
                                                        "AddedSimHcalNoise",
+						       "HBHERun3StuckADC",
+						       "HBHERun3repeatedADCblock",
+						       "HBHERun3BadCapId",
+						       "HBHERun3NonrotatingCapId"
                                                    });
       temp2.addParameter<std::vector<std::string>>("ChannelStatus",
                                                    {
