@@ -99,6 +99,7 @@ hbheprereco = cms.EDProducer(
     setNoiseFlagsQIE11 = cms.bool(False),
     setPulseShapeFlagsQIE8 = cms.bool(True),
     setPulseShapeFlagsQIE11 = cms.bool(False),
+    setHBHERun3Flags = cms.bool(True),
     setLegacyFlagsQIE8 = cms.bool(True),
     setLegacyFlagsQIE11 = cms.bool(False),
 
