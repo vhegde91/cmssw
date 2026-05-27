@@ -355,7 +355,7 @@ private:
                    const HcalDbService& cond,
                    const HcalChannelPropertiesVec& prop,
                    const bool isRealData,
-		   const uint32_t bunchCrossing,
+                   const uint32_t bunchCrossing,
                    HBHEChannelInfo* info,
                    HBHEChannelInfoCollection* infoColl,
                    HBHERecHitCollection* rechits);
@@ -366,7 +366,7 @@ private:
                            const HBHEChannelInfo& info,
                            const HcalCalibrations& calib,
                            int soi,
-			   const bool,
+                           const bool,
                            const uint32_t,
                            HBHERecHit* rh);
   void setAsicSpecificBits(const QIE11DataFrame& frame,
@@ -374,7 +374,7 @@ private:
                            const HBHEChannelInfo& info,
                            const HcalCalibrations& calib,
                            int soi,
-			   const bool isRealData,
+                           const bool isRealData,
                            const uint32_t bunchCrossing,
                            HBHERecHit* rh);
   void setCommonStatusBits(const HBHEChannelInfo& info, const HcalCalibrations& calib, HBHERecHit* rh);
@@ -480,7 +480,7 @@ void HBHEPhase1Reconstructor::processData(const Collection& coll,
                                           const HcalDbService& cond,
                                           const HcalChannelPropertiesVec& prop,
                                           const bool isRealData,
-					  const uint32_t bunchCrossing,
+                                          const uint32_t bunchCrossing,
                                           HBHEChannelInfo* channelInfo,
                                           HBHEChannelInfoCollection* infos,
                                           HBHERecHitCollection* rechits) {
@@ -645,7 +645,7 @@ void HBHEPhase1Reconstructor::setAsicSpecificBits(const HBHEDataFrame& frame,
                                                   const HBHEChannelInfo& info,
                                                   const HcalCalibrations& calib,
                                                   int /* soi */,
-						  const bool /*isRealData*/,
+                                                  const bool /*isRealData*/,
                                                   const uint32_t /*bunchcrossing*/,
                                                   HBHERecHit* rh) {
   if (setNoiseFlagsQIE8_)
@@ -665,7 +665,7 @@ void HBHEPhase1Reconstructor::setAsicSpecificBits(const QIE11DataFrame& frame,
                                                   const HBHEChannelInfo& info,
                                                   const HcalCalibrations& calib,
                                                   const int soi,
-						  const bool isRealData,
+                                                  const bool isRealData,
                                                   const uint32_t bunchCrossing,
                                                   HBHERecHit* rh) {
   if (setNoiseFlagsQIE11_)
@@ -759,7 +759,8 @@ void HBHEPhase1Reconstructor::produce(edm::Event& e, const edm::EventSetup& even
       hbheFlagSetterQIE8_->Clear();
 
     HBHEChannelInfo channelInfo(false, false);
-    processData<HBHEDataFrame>(*hbDigis, *htopo, *conditions, *prop, isData, bunchCrossing, &channelInfo, infos.get(), out.get());
+    processData<HBHEDataFrame>(
+        *hbDigis, *htopo, *conditions, *prop, isData, bunchCrossing, &channelInfo, infos.get(), out.get());
     if (setNoiseFlagsQIE8_)
       hbheFlagSetterQIE8_->SetFlagsFromRecHits(*out);
   }
@@ -769,7 +770,8 @@ void HBHEPhase1Reconstructor::produce(edm::Event& e, const edm::EventSetup& even
       hbheFlagSetterQIE11_->Clear();
 
     HBHEChannelInfo channelInfo(true, saveEffectivePedestal_);
-    processData<QIE11DataFrame>(*heDigis, *htopo, *conditions, *prop, isData, bunchCrossing, &channelInfo, infos.get(), out.get());
+    processData<QIE11DataFrame>(
+        *heDigis, *htopo, *conditions, *prop, isData, bunchCrossing, &channelInfo, infos.get(), out.get());
     if (setNoiseFlagsQIE11_)
       hbheFlagSetterQIE11_->SetFlagsFromRecHits(*out);
   }
