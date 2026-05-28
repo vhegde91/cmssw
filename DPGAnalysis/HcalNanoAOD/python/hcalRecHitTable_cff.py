@@ -54,12 +54,12 @@ hoRecHitTable = cms.EDProducer("HORecHitFlatTableProducer",
 
 hcalRecHitTableSeq = cms.Sequence(
     hbheRecHitTable
-    # + hfRecHitTable
-    # + hoRecHitTable
+    + hfRecHitTable
+    + hoRecHitTable
 )
 
 hcalRecHitTableTask = cms.Task(
     hbheRecHitTable,
-    # hfRecHitTable,
-    # hoRecHitTable,
+    hfRecHitTable,
+    hoRecHitTable,
 )
